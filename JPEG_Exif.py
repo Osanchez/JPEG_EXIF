@@ -5,8 +5,8 @@ import codecs
 def carve(f, start, end):
     read_bytes = []
     with open(f, 'rb') as f:
-        f.seek(start * 16)
-        for x in range((end - start) + 1):
+        f.seek(start)
+        for x in range((end - start)):
             read_bytes.append(binascii.hexlify(f.read(16)))
     return read_bytes
 
@@ -63,7 +63,6 @@ def parse_exif(f):
     # Don't hardcode the answer! Return your computed dictionary.
 
 
-
 def main():
     #  read_bytes = carve("test/search.jpg", 0, 3)
     #  print(read_bytes)
@@ -75,8 +74,13 @@ def main():
     print()
 
     print("Image from course website.")
-    sequence_pairs = find_jfif("test/search.JFIF", 2)
+    sequence_pairs = find_jfif("test/search.JFIF", 185484)
     print(sequence_pairs)
+
+    print()
+
+    read_bytes = carve("test/search.JFIF", 0, 4)
+    print(read_bytes)
 
 
 if __name__ == "__main__":
