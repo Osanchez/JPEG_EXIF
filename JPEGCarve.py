@@ -2,15 +2,9 @@ import binascii
 import codecs
 
 
-def read_file_object(f):  # for testing
-    with open(f, 'rb') as f:
-        for chunk in iter(lambda: f.read(16), b''):
-            print(binascii.hexlify(chunk))
-
-
 def carve(f, start, end):
     read_bytes = []
-    with open(f, 'rb+') as f:
+    with open(f, 'rb') as f:
         f.seek(start * 16)
         for x in range((end - start) + 1):
             read_bytes.append(binascii.hexlify(f.read(16)))
@@ -18,44 +12,64 @@ def carve(f, start, end):
 
 
 def find_jfif(f, max_length=None):
-    with open(f, 'rb+') as f:
+    with open(f, 'rb') as f:
         chunk = f.read()
         last_byte = len(chunk)
         f.seek(0)
 
         unfiltered_sequence_pairs = []
         filtered_sequence_pairs = []
-        location_soi = 0
+        locations_soi = []
         locations_eoi = []
 
-        # TODO: Determine what sequence pairs are considered SOI and EOI.
         for x in range(last_byte):
-            byte = f.read(1)
-            decoded_byte = codecs.decode(binascii.hexlify(byte), 'ascii')
-            if decoded_byte == "ff" or decoded_byte == "d8":  # SOI
-                location_soi = x
-            if decoded_byte == "ff" or decoded_byte == "d9":  # EOI
-                locations_eoi.append(x)
-        for y in range(len(locations_eoi)):
-            if location_soi < locations_eoi[y]:
-                unfiltered_sequence_pairs.append([location_soi, y])
+            decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+            if decoded_byte == "ff":  # EOI (ff d9)
+                next_decoded__byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+                if next_decoded__byte == "d9":
+                    f.seek(x)
+                    for y in range(last_byte - x):
+                        decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+                        if decoded_byte == "ff":  # SOI (ff d8)
+                            next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+                            if next_decoded_byte == "d8":
+                                locations_soi.append(y)
+        f.seek(0)
+        for x in range(last_byte):
+            decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+            if decoded_byte == "ff":  # EOI (ff d9)
+                next_decoded__byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+                if next_decoded__byte == "d9":
+                    locations_eoi.append(x)
+        f.close()
+        print("SOI: " + str(locations_soi))
+        print("EOI: " + str(locations_eoi))
 
-        for x in range(len(unfiltered_sequence_pairs)):
-            pair = unfiltered_sequence_pairs[x]
-            if (pair[1] - pair[0]) <= max_length:
-                filtered_sequence_pairs.append(pair)
+    for x in range(len(locations_soi)):
+        for y in range(len(locations_eoi)):
+            if locations_soi[x] < locations_eoi[y]:
+                unfiltered_sequence_pairs.append([locations_soi[x], locations_eoi[y]])
+
+    for x in range(len(unfiltered_sequence_pairs)):
+        pair = unfiltered_sequence_pairs[x]
+        if (pair[1] - pair[0]) <= max_length:
+            filtered_sequence_pairs.append(pair)
 
     return filtered_sequence_pairs
 
 
 def main():
-    #  read_file_object("test/search.jpg")
-
     #  read_bytes = carve("test/search.jpg", 0, 3)
     #  print(read_bytes)
 
-    sequence_pairs = find_jfif("test/test.dat", 2)
-    # sequence_pairs = find_jfif("test/search.jpg", 2)
+    print("My Test File.")
+    sequence_pairs = find_jfif("test/test.dat", 1)
+    print(sequence_pairs)
+
+    print()
+
+    print("Image from course website.")
+    sequence_pairs = find_jfif("test/search.jpg", 2)
     print(sequence_pairs)
 
 
