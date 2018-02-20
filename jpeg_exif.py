@@ -61,7 +61,7 @@ def parse_exif(f):
 
 
 def main():
-    sequence_pairs = find_jfif(open("test/test.dat", 'rb'), 2)
+    sequence_pairs = find_jfif(open("Designs.doc", 'rb'), 2)
     print(sequence_pairs)
 
 
