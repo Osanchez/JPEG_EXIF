@@ -3,12 +3,8 @@ import codecs
 
 
 def carve(f, start, end):
-    read_bytes = []
-    with open(f, 'rb') as f:
-        f.seek(start)
-        for x in range((end - start)):
-            read_bytes.append(binascii.hexlify(f.read(16)))
-    return read_bytes
+    f.seek(start)
+    return f.read((end + 1) - start)
 
 
 def find_jfif(f, max_length=None):
