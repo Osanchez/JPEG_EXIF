@@ -27,7 +27,6 @@ class TestFindJFIF(unittest.TestCase):
         data[-2] = 0xFF
         data[-1] = 0xD9
         f = io.BytesIO(data)
-
         self.assertEqual([(0, len(data) - 1)], jpeg_exif.find_jfif(f))
 
     def test_find_multiple(self):
