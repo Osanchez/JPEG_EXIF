@@ -24,17 +24,13 @@ def find_jfif(f, max_length=None):
 
         for x in range(last_byte):
             decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-            if decoded_byte == "ff":  # EOI (ff d9)
+            if decoded_byte == "ff":  # SOI (ff d8)
                 next_decoded__byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-                if next_decoded__byte == "d9":
-                    f.seek(x)
-                    for y in range(last_byte - x):
-                        decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-                        if decoded_byte == "ff":  # SOI (ff d8)
-                            next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-                            if next_decoded_byte == "d8":
-                                locations_soi.append(y)
+                if next_decoded__byte == "d8":
+                    locations_soi.append(x)
+
         f.seek(0)
+
         for x in range(last_byte):
             decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
             if decoded_byte == "ff":  # EOI (ff d9)
@@ -42,6 +38,7 @@ def find_jfif(f, max_length=None):
                 if next_decoded__byte == "d9":
                     locations_eoi.append(x)
         f.close()
+
         print("SOI: " + str(locations_soi))
         print("EOI: " + str(locations_eoi))
 
@@ -54,8 +51,17 @@ def find_jfif(f, max_length=None):
         pair = unfiltered_sequence_pairs[x]
         if (pair[1] - pair[0]) <= max_length:
             filtered_sequence_pairs.append(pair)
-
     return filtered_sequence_pairs
+
+
+def parse_exif(f):
+    pass
+    # do it!
+
+    # ...
+
+    # Don't hardcode the answer! Return your computed dictionary.
+
 
 
 def main():
@@ -63,13 +69,13 @@ def main():
     #  print(read_bytes)
 
     print("My Test File.")
-    sequence_pairs = find_jfif("test/test.dat", 1)
+    sequence_pairs = find_jfif("test/test.dat", 2)
     print(sequence_pairs)
 
     print()
 
     print("Image from course website.")
-    sequence_pairs = find_jfif("test/search.jpg", 2)
+    sequence_pairs = find_jfif("test/search.JFIF", 2)
     print(sequence_pairs)
 
 
