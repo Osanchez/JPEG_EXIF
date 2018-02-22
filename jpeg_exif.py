@@ -7,7 +7,6 @@ def carve(f, start, end):
     return f.read((end + 1) - start)
 
 
-# TODO: fix counting issues
 def find_jfif(f, max_length=None):
     chunk = f.read()
     last_byte = len(chunk)
@@ -17,6 +16,8 @@ def find_jfif(f, max_length=None):
 
     f.seek(0)
 
+    byte_list = []
+
     unfiltered_sequence_pairs = []
     filtered_sequence_pairs = []
 
@@ -24,26 +25,15 @@ def find_jfif(f, max_length=None):
     locations_eoi = []
 
     for x in range(last_byte):
-        decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-        print(decoded_byte)
-        if decoded_byte == "ff":  # SOI (ff d8)
-            next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-            if next_decoded_byte == "d8":
-                locations_soi.append(x + 1)
-                f.seek(x + 1)
+        read_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+        byte_list.append(read_byte)
 
-    f.seek(0)
-
-    for x in range(last_byte):
-        decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-        if decoded_byte == "ff":  # SOI (ff d8)
-            next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-            if next_decoded_byte == "d9":
+    for x in range(len(byte_list)):
+        if byte_list[x] == "ff":
+            if byte_list[x + 1] == "d8":
                 locations_soi.append(x)
-                f.seek(x + 1)
-
-    print(locations_soi)
-    print(locations_eoi)
+            elif byte_list[x + 1] == "d9":
+                locations_eoi.append(x + 1)
 
     for x in range(len(locations_soi)):
         for y in range(len(locations_eoi)):
@@ -52,7 +42,7 @@ def find_jfif(f, max_length=None):
 
     for x in range(len(unfiltered_sequence_pairs)):
         pair = unfiltered_sequence_pairs[x]
-        if (pair[1] - pair[0]) <= max_length:
+        if (pair[1] - pair[0]) < max_length:
             filtered_sequence_pairs.append(pair)
     return filtered_sequence_pairs
 
@@ -67,9 +57,7 @@ def parse_exif(f):
 
 
 def main():
-    # sequence_pairs = find_jfif(open("Designs.doc", 'rb'), 154)
-    sequence_pairs = find_jfif(open("test/test.dat", 'rb'), 2)
-    print(sequence_pairs)
+    pass
 
 
 if __name__ == "__main__":
