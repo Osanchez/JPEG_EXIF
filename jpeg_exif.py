@@ -23,34 +23,24 @@ def find_jfif(f, max_length=None):
     locations_soi = []
     locations_eoi = []
 
-    soi_index = -1
-    eoi_index = -1
-
     for x in range(last_byte):
         decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-        if decoded_byte == "ff":
+        print(decoded_byte)
+        if decoded_byte == "ff":  # SOI (ff d8)
             next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-            if next_decoded_byte == "d8":  # SOI (ff d8)
-                soi_index += 1
-                locations_soi.append(soi_index)
-            else:
-                soi_index += 1
-        else:
-            soi_index += 1
+            if next_decoded_byte == "d8":
+                locations_soi.append(x + 1)
+                f.seek(x + 1)
 
     f.seek(0)
 
     for x in range(last_byte):
         decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-        if decoded_byte == "ff":
+        if decoded_byte == "ff":  # SOI (ff d8)
             next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
-            if next_decoded_byte == "d9":  # SOI (ff d8)
-                eoi_index += 1
-                locations_eoi.append(eoi_index)
-            else:
-                eoi_index += 1
-        else:
-            eoi_index += 1
+            if next_decoded_byte == "d9":
+                locations_soi.append(x)
+                f.seek(x + 1)
 
     print(locations_soi)
     print(locations_eoi)
