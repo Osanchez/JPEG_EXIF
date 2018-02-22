@@ -19,22 +19,38 @@ def find_jfif(f, max_length=None):
 
     unfiltered_sequence_pairs = []
     filtered_sequence_pairs = []
+
     locations_soi = []
     locations_eoi = []
 
-    z = 0
+    soi_index = -1
+    eoi_index = -1
+
     for x in range(last_byte):
         decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
         if decoded_byte == "ff":
             next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
             if next_decoded_byte == "d8":  # SOI (ff d8)
-                locations_soi.append(z)
-                z += 1
-            elif next_decoded_byte == "d9":  # EOI (ff d9)
-                locations_eoi.append(z)
-                z += 1
+                soi_index += 1
+                locations_soi.append(soi_index)
+            else:
+                soi_index += 1
         else:
-            z += 1
+            soi_index += 1
+
+    f.seek(0)
+
+    for x in range(last_byte):
+        decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+        if decoded_byte == "ff":
+            next_decoded_byte = codecs.decode(binascii.hexlify(f.read(1)), 'ascii')
+            if next_decoded_byte == "d9":  # SOI (ff d8)
+                eoi_index += 1
+                locations_eoi.append(eoi_index)
+            else:
+                eoi_index += 1
+        else:
+            eoi_index += 1
 
     print(locations_soi)
     print(locations_eoi)
@@ -61,7 +77,8 @@ def parse_exif(f):
 
 
 def main():
-    sequence_pairs = find_jfif(open("Designs.doc", 'rb'), 2)
+    # sequence_pairs = find_jfif(open("Designs.doc", 'rb'), 154)
+    sequence_pairs = find_jfif(open("test/test.dat", 'rb'), 2)
     print(sequence_pairs)
 
 
