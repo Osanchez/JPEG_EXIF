@@ -1,5 +1,6 @@
 import binascii
 import codecs
+import struct
 
 
 def carve(f, start, end):
@@ -48,16 +49,12 @@ def find_jfif(f, max_length=None):
 
 
 def parse_exif(f):
-    pass
-    # do it!
+    read_bytes = f.read()
 
-    # ...
-
-    # Don't hardcode the answer! Return your computed dictionary.
-
+    print(read_bytes[0:2])
 
 def main():
-    pass
+    parse_exif(open("Designs.doc", 'rb'))
 
 
 if __name__ == "__main__":
