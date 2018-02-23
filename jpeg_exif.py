@@ -97,15 +97,16 @@ def parse_exif(f):
         # TODO: Continue to look for next IFD
         next_ifd_offset = bom_bytes[ifd_start: ifd_start + 4]  # Next 4 bytes offset of next IFD
         next_offset_decimal = struct.unpack('>I', next_ifd_offset)[0]  # change offset to decimal
-        print(next_ifd_offset)  # b'\x00\xb4\x88%'
-        print(next_offset_decimal)  # 11831333 ???? somethings def wrong
+        print("Next FID Offset: " + str(next_ifd_offset))  # b'\x00\xb4\x88%'
+        print("Offset Value: " + str(next_offset_decimal))  # 11831333 ???? somethings def wrong
 
         return parsed_data
 
 
 def main():
     print(parse_exif(open("FullSizeRender.jpg", 'rb')))
-    # print(parse_exif(open("gore-superman.jpg", 'rb')))
+    print()
+    print(parse_exif(open("gore-superman.jpg", 'rb')))
 
 
 if __name__ == "__main__":
