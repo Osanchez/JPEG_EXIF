@@ -2,6 +2,8 @@ import binascii
 import codecs
 import struct
 
+import tags
+
 
 def carve(f, start, end):
     f.seek(start)
@@ -50,11 +52,56 @@ def find_jfif(f, max_length=None):
 
 def parse_exif(f):
     read_bytes = f.read()
+    parsed_data = {}
 
-    print(read_bytes[0:2])
+    exif_bytes = read_bytes[4 + 16:]
+    endian = exif_bytes[10:12]  # endian marker
+
+    if endian == b'MM':
+        more_ifds = True
+        ifd_start = struct.unpack('>I', exif_bytes[14:18])[0]
+
+        bom_bytes = exif_bytes[10:]
+
+        number_entries = struct.unpack('>H', bom_bytes[ifd_start:ifd_start + 2])[0]
+        for x in range(number_entries):
+            tag_number = bom_bytes[ifd_start + 2:ifd_start + 4]
+            retrieved_tag = tags.TAGS.get(int.from_bytes(tag_number, byteorder='big'))
+
+            format_code = struct.unpack('>H', bom_bytes[ifd_start + 4:ifd_start + 6])[0]  # Unpack format code from IFD
+            format_code_size = tags.FORMAT.get(format_code)
+            number_of_components = struct.unpack('>I', bom_bytes[ifd_start + 6:ifd_start + 10])[0]  # Unpack number of components
+            data_size = format_code_size * number_of_components  # date type byte size * number of components
+
+            if data_size > 4:
+                data_location = struct.unpack('>I', bom_bytes[ifd_start + 10:ifd_start + 14])[0]
+                data = bom_bytes[data_location:data_location + data_size]
+                if format_code_size == 8:  # meaning its a rational number
+                    decoded_data_numerator = struct.unpack('>I', data[0:4])[0]
+                    decoded_data_denominator = struct.unpack('>I', data[4:8])[0]
+                    decoded_data = str(decoded_data_numerator) + "/" + str(decoded_data_denominator)
+                else:
+                    decoded_data = data[0:-1].decode()
+            else:
+                data = bom_bytes[ifd_start + 10:ifd_start + 14]
+                if format_code_size == 2:  # meaning its a short number
+                    decoded_data = struct.unpack('>H', data[0:2])[0]
+                else:
+                    decoded_data = struct.unpack('>I', data)[0]
+
+            if parsed_data.get(retrieved_tag) is not None:
+                parsed_data[retrieved_tag].append(decoded_data)
+            else:
+                parsed_data[retrieved_tag] = [decoded_data]
+
+            ifd_start += 12  # Each entry it 12 bytes long
+
+        return parsed_data
+
 
 def main():
-    parse_exif(open("Designs.doc", 'rb'))
+    # print(parse_exif(open("FullSizeRender.jpg", 'rb')))
+      print(parse_exif(open("gore-superman.jpg", 'rb')))
 
 
 if __name__ == "__main__":
