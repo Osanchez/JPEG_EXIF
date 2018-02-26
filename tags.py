@@ -99,12 +99,3 @@ TAGS = {0x100: "ImageWidth",
         0xA434: "LensModel",
         0xA435: "LensSerialNumber"
         }
-
-FORMAT = {1: 1,  # "unsigned byte"
-          2: 1,  # "ascii string"
-          3: 2,  # "unsigned short"
-          4: 4,  # "unsigned long"
-          5: 8,  # "unsigned rational"
-          6: 1,  # "signed byte"
-          7: 1,  # "undefined"
-          }
